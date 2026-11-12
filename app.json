@@ -1,14 +1,16 @@
 {
   "expo": {
-    "name": "nikaPOS-v2",
-    "slug": "nikaPOS-v2",
+    "name": "Kurio POS",
+    "slug": "kurio-pos",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "nikaposv2",
-    "userInterfaceStyle": "automatic",
+    "scheme": "kurio",
+    "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kurio.pos"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,20 +19,41 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kurio.pos",
+      "versionCode": 1
     },
     "web": {
-      "output": "server",
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "headers": {
+            "Cross-Origin-Embedder-Policy": "credentialless",
+            "Cross-Origin-Opener-Policy": "same-origin"
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-sharing",
+      [
+        "react-native-ble-manager",
+        {
+          "neverForLocation": true,
+          "isBleRequired": false,
+          "bluetoothAlwaysPermission": "Izinkan Kurio POS terhubung ke printer Bluetooth"
         }
       ]
     ],

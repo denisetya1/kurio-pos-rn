@@ -1,98 +1,93 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { CartPanel } from '@/components/cart-panel';
+import { ConnectivityBanner } from '@/components/connectivity-banner';
+import { ProductCatalog } from '@/components/product-catalog';
+import { colors, layout, spacing } from '@/constants/theme';
+import { useSessionStore } from '@/stores/session-store';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+export default function PosScreen() {
+  const { width, height } = useWindowDimensions();
+  const isSplit = width >= layout.splitMinWidth && width > height;
+  const user = useSessionStore((state) => state.user);
+  const outlet = useSessionStore((state) => state.outlet);
+  const catalogWidth = isSplit ? width * 0.64 : width - spacing.xl * 2;
 
-export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.container}
+    >
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.brand}>Kurio POS</Text>
+            <Text style={styles.context}>
+              {outlet?.name ?? 'Belum login'}
+              {user?.name ? ` · ${user.name}` : ''}
+            </Text>
+          </View>
+          <Text style={styles.orientationLabel}>
+            {isSplit ? 'Mode landscape' : 'Mode portrait'}
+          </Text>
+        </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        <ConnectivityBanner />
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
+        <View style={[styles.workspace, isSplit ? styles.split : styles.stacked]}>
+          <View style={isSplit ? styles.catalogSplit : styles.catalogStacked}>
+            <ProductCatalog availableWidth={catalogWidth} />
+          </View>
+          <View style={isSplit ? styles.cartSplit : styles.cartStacked}>
+            <CartPanel />
+          </View>
+        </View>
       </SafeAreaView>
-    </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: colors.canvas,
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
+    width: '100%',
+    maxWidth: layout.maxContentWidth,
+    alignSelf: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    gap: spacing.md,
+  },
+  header: {
+    minHeight: 64,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    justifyContent: 'space-between',
+    gap: spacing.lg,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  brand: { color: colors.text, fontSize: 24, fontWeight: '800' },
+  context: { color: colors.textMuted, fontSize: 13, marginTop: spacing.xs },
+  orientationLabel: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '700',
   },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  workspace: { flex: 1, minHeight: 0, gap: spacing.md },
+  split: { flexDirection: 'row' },
+  stacked: { flexDirection: 'column' },
+  catalogSplit: { flex: 1.8, minWidth: 0 },
+  cartSplit: { flex: 1, minWidth: 320 },
+  catalogStacked: { flex: 1.2, minHeight: 0 },
+  cartStacked: { flex: 1, minHeight: 280 },
 });
